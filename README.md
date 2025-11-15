@@ -130,6 +130,27 @@ The GitHub Actions workflow (`.github/workflows/build.yml`) currently handles bu
 
 ---
 
+### CI/CD (GitHub Actions + Automated Deployment)
+
+This project includes an automated deploy pipeline using GitHub Actions  
+(`.github/workflows/build.yml`).
+
+On every push to `main`, the workflow:
+
+1. Builds & tests the application  
+2. SSHes into the target Ubuntu server using the SSH key in  
+   `GIT_DEPLOY_KEY` (GitHub secret)  
+3. Runs the server-side deploy script:
+
+`scripts/deploy.sh` handles:
+
+- Installing Docker & docker-compose if missing  
+- Pulling the latest code  
+- Cleaning old Docker resources  
+- Rebuilding & restarting the service via:
+
+To switch servers, only update the GitHub secret `VPS_IP`.  
+The pipeline will deploy to that server automatically on the next push.
 
 ## Trade-offs & Future Improvements
 
@@ -185,3 +206,69 @@ Because everything runs under one port, there are no CORS issues or additional s
 3. Click **Start Recording**, speak for a few seconds, and then click **Stop Recording**.
 
 4. The page will send the audio to the `/transcribe` API and show the transcript on the screen.
+
+### Testing With Live Server (Public IP - 15.223.120.41)
+
+Once the service is deployed, you can verify it using your server’s public IP.
+
+#### Health Check
+
+```bash
+curl http://15.223.120.41:8000/health
+```
+
+### Transcribe an Audio File
+
+```bash
+curl -X POST http://15.223.120.41:8000/transcribe \
+  -F "file=@sample_audio/hello.m4a"
+```
+
+### Testing the Mic Client on Your Public Server (Optional)
+
+By default, browsers block microphone access on:
+
+```
+http://15.223.120.41:8000
+```
+
+because it is **HTTP**, not HTTPS.
+
+If you still want to test mic capture directly on your server’s public IP:
+
+#### Option A — Chrome Dev Flag (Developer Mode Only)
+
+1. Open in Chrome:
+   ```
+   chrome://flags/#unsafely-treat-insecure-origin-as-secure
+   ```
+2. Add your server origin:
+   ```
+   http://15.223.120.41::8000
+   ```
+3. Relaunch Chrome.
+
+Now you can access:
+
+```
+http://15.223.120.41::8000/client
+```
+
+and your microphone will work.
+
+
+### About the client HTML page
+
+The browser client lives in `client/index.html` and is served by FastAPI  
+under `/client`.
+
+It uses the browser’s `MediaRecorder` API to:
+
+1. Capture microphone audio (`audio/webm`)
+2. Send it as `file` to `POST /transcribe`
+3. Display the returned transcript on the page
+
+Because it is served from the same FastAPI app, it requires **no separate server**  
+and avoids any CORS issues.
+
+Once deployed, it is available publicly at: https://ip_address:8000/client
