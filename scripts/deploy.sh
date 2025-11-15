@@ -37,10 +37,10 @@ git reset --hard origin/main
 git clean -fd
 
 echo "🧹 Cleaning up old Docker resources (optional)..."
-docker system prune -af || true
-docker volume prune -f || true
+sudo docker system prune -af || true
+sudo docker volume prune -f || true
 
 echo "📦 Building and starting containers..."
-docker-compose up --build -d
+sudo docker-compose up --build -d
 
 echo "✅ Deployment complete. Service should be available on port 8000."
