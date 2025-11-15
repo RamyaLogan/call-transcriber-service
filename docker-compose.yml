@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: call-transcriber-service
+    restart: unless-stopped
+    environment:
+      # You can tune these via env or .env later
+      STT_MODEL_NAME: small
+      STT_DEVICE: cpu
+      STT_COMPUTE_TYPE: int8
+      STT_MAX_FILE_SIZE_MB: 25
+    ports:
+      - "8000:8000"
