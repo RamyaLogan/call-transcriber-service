@@ -244,14 +244,14 @@ If you still want to test mic capture directly on your server’s public IP:
    ```
 2. Add your server origin:
    ```
-   http://15.223.120.41::8000
+   http://15.223.120.41:8000
    ```
 3. Relaunch Chrome.
 
 Now you can access:
 
 ```
-http://15.223.120.41::8000/client
+http://15.223.120.41:8000/client
 ```
 
 and your microphone will work.
