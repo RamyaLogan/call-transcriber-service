@@ -42,3 +42,43 @@ jobs:
         with:
           name: call-transcriber-image
           path: call-transcriber-service.tar.gz
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      VPS_IP: ${{ secrets.VPS_IP }}
+
+    steps:
+      - name: Add SSH key
+        run: |
+          echo "${{ secrets.GIT_DEPLOY_KEY }}" > deploy_key
+          chmod 600 deploy_key
+          eval "$(ssh-agent -s)"
+          ssh-add deploy_key
+
+      - name: Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ env.VPS_IP }} << 'EOF'
+          set -e
+
+          # Ensure git is installed
+          if ! command -v git &> /dev/null; then
+            sudo apt-get update -y
+            sudo apt-get install -y git
+          fi
+
+          cd \$HOME
+
+          if [ ! -d "call-transcriber-service" ]; then
+            echo "📥 Cloning repo for the first time..."
+            git clone https://github.com/RamyaLogan/call-transcriber-service.git call-transcriber-service
+          fi
+
+          cd call-transcriber-service
+
+          echo "▶ Running deploy script..."
+          bash scripts/deploy.sh
+          EOF
+  
