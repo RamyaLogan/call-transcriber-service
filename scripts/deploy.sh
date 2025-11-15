@@ -47,9 +47,6 @@ git checkout main
 git reset --hard origin/main
 git clean -fd
 
-echo "🧹 Cleaning up old Docker resources (optional)..."
-sudo docker system prune -af || true
-sudo docker volume prune -f || true
 
 echo "📦 Building and starting containers..."
 sudo docker-compose up --build -d
