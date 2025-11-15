@@ -42,6 +42,7 @@ jobs:
         with:
           name: call-transcriber-image
           path: call-transcriber-service.tar.gz
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
@@ -51,16 +52,14 @@ jobs:
       VPS_IP: ${{ secrets.VPS_IP }}
 
     steps:
-      - name: Add SSH key
+      - name: Write SSH key
         run: |
           echo "${{ secrets.GIT_DEPLOY_KEY }}" > deploy_key
           chmod 600 deploy_key
-          eval "$(ssh-agent -s)"
-          ssh-add deploy_key
 
       - name: Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ env.VPS_IP }} << 'EOF'
+          ssh -i deploy_key -o StrictHostKeyChecking=no ubuntu@${{ env.VPS_IP }} << 'EOF'
           set -e
 
           # Ensure git is installed
