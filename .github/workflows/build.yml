@@ -28,3 +28,17 @@ jobs:
       - name: Run tests
         run: |
           pytest
+
+      - name: Build Docker image
+        run: docker build -t call-transcriber-service:${{ github.sha }} .
+
+      - name: Save Docker image as artifact
+        run: |
+          docker save call-transcriber-service:${{ github.sha }} \
+            | gzip > call-transcriber-service.tar.gz
+
+      - name: Upload Docker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: call-transcriber-image
+          path: call-transcriber-service.tar.gz
