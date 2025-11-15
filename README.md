@@ -155,3 +155,33 @@ With more time, I would consider:
 ## Notes
 
 This solution is intentionally minimal and easy to understand. Everything is containerized and ready for deployment, with CI already in place. The design ensures that reviewers can clone, run, and validate the service quickly.
+
+## Bonus: Mic Recording Client
+
+As part of the bonus requirement, the project includes a lightweight browser-based client that can record audio directly from the user’s microphone and send it to the `/transcribe` endpoint.
+
+This client is bundled inside the same FastAPI service and served from the `/client` path.  
+Because everything runs under one port, there are no CORS issues or additional servers to manage.
+
+### How to use it
+
+1. Start the service (either locally or with Docker):
+
+   ```
+   uvicorn src.app.main:app --reload --port 8000
+   ```
+   or
+
+   ```
+   docker compose up --build
+   ```
+
+2. Open the mic client in your browser:
+
+   ```
+   http://localhost:8000/client
+   ```
+
+3. Click **Start Recording**, speak for a few seconds, and then click **Stop Recording**.
+
+4. The page will send the audio to the `/transcribe` API and show the transcript on the screen.
