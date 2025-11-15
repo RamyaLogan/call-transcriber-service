@@ -8,6 +8,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from .config import settings
 from .speech_to_text import transcribe_audio
 from .models import TranscriptionResponse, ErrorResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 logging.basicConfig(
     level="INFO",
@@ -17,6 +19,19 @@ logger = logging.getLogger("app")
 
 app = FastAPI(title="Call Transcriber Service", version="0.1.0")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # for this exercise; in production, restrict this
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# Serve client (HTML/JS) from /client
+app.mount(
+    "/client",
+    StaticFiles(directory="client", html=True),
+    name="client"
+)
 # Supported audio types
 ALLOWED_CONTENT_TYPES: List[str] = [
     "audio/wav",
@@ -27,6 +42,7 @@ ALLOWED_CONTENT_TYPES: List[str] = [
     "audio/x-m4a",
     "audio/aac",
     "audio/ogg",
+    "audio/webm",
     "application/octet-stream",
 ]
 

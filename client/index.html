@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Call Transcriber – Mic Client</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 2rem;
+      max-width: 600px;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      margin-right: 0.5rem;
+      font-size: 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+    #transcript {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 4rem;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Call Transcriber – Mic Client</h1>
+  <p>Record from your microphone and send the audio to the transcription service.</p>
+
+  <div>
+    <button id="recordBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+  </div>
+
+  <div id="status"></div>
+
+  <h2>Transcript</h2>
+  <div id="transcript">No transcript yet.</div>
+
+  <script>
+    const apiUrl = "/transcribe"; // adjust if running on a server
+
+    const recordBtn = document.getElementById("recordBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const statusEl = document.getElementById("status");
+    const transcriptEl = document.getElementById("transcript");
+
+    let mediaRecorder = null;
+    let chunks = [];
+
+    recordBtn.addEventListener("click", async () => {
+      chunks = [];
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            chunks.push(e.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          statusEl.textContent = "Uploading audio...";
+          const blob = new Blob(chunks, { type: "audio/webm" });
+
+          try {
+            const formData = new FormData();
+            formData.append("file", blob, "mic-recording.webm");
+
+            const resp = await fetch(apiUrl, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!resp.ok) {
+              const text = await resp.text();
+              statusEl.textContent = "Error from server: " + resp.status;
+              transcriptEl.textContent = text;
+              return;
+            }
+
+            const data = await resp.json();
+            transcriptEl.textContent = data.text || "(empty transcript)";
+            statusEl.textContent = "Done.";
+          } catch (err) {
+            console.error(err);
+            statusEl.textContent = "Failed to send audio.";
+          }
+        };
+
+        mediaRecorder.start();
+        statusEl.textContent = "Recording... speak now.";
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Could not access microphone.";
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        statusEl.textContent = "Stopping recording...";
+      }
+      recordBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>
