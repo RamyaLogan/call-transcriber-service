@@ -20,6 +20,17 @@ else
   echo "🐳 Docker already installed."
 fi
 
+# Ensure docker group exists and current user is in it (for future logins)
+if ! getent group docker >/dev/null 2>&1; then
+  echo "👥 docker group does not exist. Creating..."
+  sudo groupadd docker
+fi
+
+if ! id -nG "$USER" | grep -qw "docker"; then
+  echo "👥 Adding user '$USER' to docker group (will take effect on next login)..."
+  sudo usermod -aG docker "$USER" || true
+fi
+
 # Install docker-compose if missing
 if ! command -v docker-compose &> /dev/null; then
   echo "📦 docker-compose not found. Installing..."
