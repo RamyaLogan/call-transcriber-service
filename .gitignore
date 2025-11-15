@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+
+# venv
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Byte-compiled / optimized / DLL files
+*.so
+
+# Coverage / test
+htmlcov/
+.dist/
+build/
+dist/
+.eggs/
+*.egg-info
+.pytest_cache/
+
+# OS
+.DS_Store
